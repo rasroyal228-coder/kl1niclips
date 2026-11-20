@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="logo.png" />
+  <title>Kl1ni Clips — Нарезка клипов онлайн</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Inter, system-ui, -apple-system, Arial, sans-serif;
+      background: #0b0b12;
+      color: #f4f4f8;
+      min-height: 100vh;
+      padding: 18px;
+    }
+    .container { max-width: 1120px; margin: 0 auto; }
+    header {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+      gap: 12px; background: #141422; border: 1px solid #26263d;
+      padding: 16px 20px; border-radius: 16px; margin-bottom: 18px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo {
+      width: 44px; height: 44px; border-radius: 12px;
+      overflow: hidden; border: 1px solid #353554;
+      background: #0d0d17; display: grid; place-items: center; font-weight: 800;
+    }
+    .logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .status {
+      padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 600;
+      background: #1e1e32; color: #fbbf24; border: 1px solid #353554;
+    }
+    .status.online {
+      background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.4);
+    }
+    .panel {
+      background: #141422; border: 1px solid #26263d;
+      border-radius: 16px; padding: 20px; margin-bottom: 18px;
+    }
+    .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    input[type="text"], select {
+      background: #0d0d17; color: #fff; border: 1px solid #2e2e4a;
+      border-radius: 10px; padding: 11px 14px; font-size: 14px;
+    }
+    input[type="text"] { flex: 1; min-width: 220px; }
+    button {
+      cursor: pointer; border: none; border-radius: 10px; font-weight: 600;
+      padding: 11px 16px; font-size: 14px; transition: 0.15s;
+    }
+    .btn-primary { background: linear-gradient(135deg, #8b5cf6, #6366f1); color: #fff; }
+    .btn-secondary { background: #232338; color: #e5e7eb; border: 1px solid #363652; }
+    .note {
+      margin-top: 12px; font-size: 13px; color: #9ca3af; line-height: 1.5;
+    }
+    .grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;
+    }
+    .clip-card {
+      background: #141422; border: 1px solid #26263d; border-radius: 14px;
+      padding: 14px; display: flex; flex-direction: column; gap: 10px;
+    }
+    video.clip-player {
+      width: 100%; max-height: 340px; background: #050509;
+      border-radius: 10px; border: 1px solid #282840;
+    }
+    .empty { color: #9ca3af; padding: 14px 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo">
+          <img src="logo.png" alt="Kl1ni Clips" onerror="this.style.display='none'; this.parentElement.textContent='K1';" />
+        </div>
+        <div>
+          <strong style="font-size:18px;">Kl1ni Clips</strong>
+          <div style="font-size:12px; color:#9ca3af;">Онлайн-сервис нарезки коротких видео</div>
+        </div>
+      </div>
+      <div id="statusBadge" class="status">Проверка сервера...</div>
+    </header>
+
+    <section class="panel">
+      <div class="row">
+        <input id="videoUrl" type="text" placeholder="Вставь ссылку на видео..." />
+        <select id="clipCount">
+          <option value="3">3 клипа</option>
+          <option value="5" selected>5 клипов</option>
+          <option value="8">8 клипов</option>
+        </select>
+        <select id="clipDuration">
+          <option value="15">15 сек</option>
+          <option value="25" selected>25 сек</option>
+          <option value="30">30 сек</option>
+        </select>
+        <button id="runBtn" type="button" class="btn-primary" onclick="runCut()">⚡ Нарезать</button>
+      </div>
+      <p id="statusHint" class="note">
+        Сайт открывается по ссылке у всех. Для обработки видео нужен подключённый сервер (`server.py` + `ffmpeg` + `yt-dlp`).
+      </p>
+    </section>
+
+    <section class="panel">
+      <h2 style="margin-bottom:12px;">🔥 Готовые клипы</h2>
+      <div id="clipsGrid" class="grid">
+        <p class="empty">Здесь появятся готовые видео после обработки.</p>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Подставь сюда адрес работающего сервера (если открыто напрямую с сервера — берётся текущий адрес)
+    const SERVER_URL = "https://ВАШ_СЕРВЕР_ЗДЕСЬ";
+    const API_BASE = (window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost" || SERVER_URL.includes("ВАШ_СЕРВЕР_ЗДЕСЬ"))
+      ? (window.location.protocol.startsWith("http") ? window.location.origin : "")
+      : SERVER_URL;
+
+    async function checkServer() {
+      const badge = document.getElementById("statusBadge");
+      const hint = document.getElementById("statusHint");
+      if (!API_BASE) {
+        badge.textContent = "○ Сервер не подключён";
+        badge.classList.remove("online");
+        hint.textContent = "Страница открыта как статический сайт. Чтобы кнопка «Нарезать» работала у всех без твоего ПК, подключи сервер в SERVER_URL.";
+        return;
+      }
+      try {
+        const res = await fetch(`${API_BASE}/ping`);
+        if (res.ok) {
+          badge.textContent = "● Сервер онлайн";
+          badge.classList.add("online");
+          return;
+        }
+      } catch (_) {}
+      badge.textContent = "○ Сервер оффлайн";
+      badge.classList.remove("online");
+    }
+
+    function renderClips(clips) {
+      const grid = document.getElementById("clipsGrid");
+      if (!clips || !clips.length) {
+        grid.innerHTML = `<p class="empty">Клипов пока нет.</p>`;
+        return;
+      }
+      grid.innerHTML = clips.map((c, i) => {
+        const src = c.url || c.videoUrl || "";
+        return `
+          <div class="clip-card">
+            <strong>${c.title || `Клип #${i + 1}`}</strong>
+            <video class="clip-player" src="${src}" controls preload="metadata" playsinline></video>
+            <a href="${src}?download=1" download style="text-align:center; background:#10b981; color:#062118; padding:10px; border-radius:10px; text-decoration:none; font-weight:700;">⬇ Скачать MP4</a>
+          </div>
+        `;
+      }).join("");
+    }
+
+    async function runCut() {
+      const url = document.getElementById("videoUrl").value.trim();
+      if (!url) return alert("Вставь ссылку на видео!");
+      if (!API_BASE) {
+        return alert("Сначала подключи сервер (SERVER_URL), иначе некому резать видео.");
+      }
+
+      const btn = document.getElementById("runBtn");
+      btn.disabled = true;
+      btn.textContent = "⏳ Обработка...";
+
+      try {
+        const startRes = await fetch(`${API_BASE}/process`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            url,
+            mode: "clean",
+            quality: "720",
+            aspect_ratio: "9:16",
+            count: Number(document.getElementById("clipCount").value),
+            duration: Number(document.getElementById("clipDuration").value)
+          })
+        });
+        const startData = await startRes.json();
+        if (!startRes.ok || !startData.job_id) throw new Error(startData.error || "Ошибка запуска");
+
+        while (true) {
+          await new Promise(r => setTimeout(r, 1000));
+          const stRes = await fetch(`${API_BASE}/api/status/${startData.job_id}`);
+          const stData = await stRes.json();
+          if (stData.done) {
+            if (stData.error) throw new Error(stData.error);
+            renderClips(stData.clips || []);
+            break;
+          }
+        }
+      } catch (err) {
+        alert("Ошибка: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "⚡ Нарезать";
+      }
+    }
+
+    checkServer();
+  </script>
+</body>
+</html>
