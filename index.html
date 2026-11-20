@@ -1,0 +1,1618 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="logo.png" />
+  <title>Kl1ni Clips — AI Нарезка для TikTok, Reels и Shorts</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Inter, system-ui, -apple-system, Arial, sans-serif;
+      background: #0b0b12;
+      color: #f4f4f8;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container { max-width: 1280px; margin: 0 auto; }
+    header {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+      gap: 12px; background: #141422; border: 1px solid #26263d;
+      padding: 16px 20px; border-radius: 16px; margin-bottom: 16px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo {
+      width: 44px; height: 44px; border-radius: 12px;
+      overflow: hidden; border: 1px solid #353554;
+      background: #0d0d17; flex-shrink: 0;
+      display: grid; place-items: center; font-weight: 800; font-size: 16px;
+    }
+    .logo img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+    .badge {
+      background: rgba(16, 185, 129, 0.16); color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700;
+    }
+    .status {
+      padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 600;
+      background: #1e1e32; color: #fbbf24; border: 1px solid #353554;
+    }
+    .status.online { background: rgba(16,185,129,0.15); color: #34d399; border-color: rgba(16,185,129,0.4); }
+
+    .tabs-bar {
+      display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; align-items: center; justify-content: space-between;
+    }
+    .tab-group { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .tab-btn {
+      background: #141422; color: #cbd5e1; border: 1px solid #26263d;
+      padding: 11px 18px; border-radius: 12px; font-size: 14px; font-weight: 700;
+    }
+    .tab-btn.active {
+      background: linear-gradient(135deg, rgba(139,92,246,0.28), rgba(16,185,129,0.20));
+      color: #fff; border-color: #8b5cf6;
+      box-shadow: 0 0 0 1px rgba(139,92,246,0.35);
+    }
+
+    button {
+      cursor: pointer; border: none; border-radius: 10px; font-weight: 600;
+      padding: 10px 16px; font-size: 14px; transition: 0.15s;
+    }
+    button:hover { opacity: 0.92; transform: translateY(-1px); }
+    .btn-primary { background: linear-gradient(135deg, #8b5cf6, #6366f1); color: #fff; }
+    .btn-green { background: #10b981; color: #062118; }
+    .btn-secondary { background: #232338; color: #e5e7eb; border: 1px solid #363652; }
+    .btn-danger { background: rgba(239,68,68,0.16); color: #fca5a5; border: 1px solid rgba(239,68,68,0.35); }
+    .btn-preset { background: #1b1b2d; color: #d1d5db; border: 1px solid #31314d; padding: 7px 11px; font-size: 12px; }
+    .btn-preset.active { background: rgba(139,92,246,0.25); color: #fff; border-color: #8b5cf6; }
+
+    .panel {
+      background: #141422; border: 1px solid #26263d;
+      border-radius: 16px; padding: 20px; margin-bottom: 20px;
+    }
+    .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    input[type="text"], input[type="number"], select {
+      background: #0d0d17; color: #fff; border: 1px solid #2e2e4a;
+      border-radius: 10px; padding: 10px 13px; font-size: 14px;
+    }
+    input[type="text"] { flex: 1; min-width: 240px; }
+    input[type="number"] { width: 90px; }
+
+    .history-bar {
+      margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12px; color: #9ca3af;
+    }
+    .hist-chip {
+      background: #0e0e19; color: #cbd5e1; border: 1px solid #282842;
+      padding: 4px 10px; border-radius: 999px; font-size: 11px; max-width: 240px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    .extras-bar {
+      margin-top: 14px; padding-top: 14px; border-top: 1px solid #232339;
+      display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;
+    }
+    .check-label {
+      display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #d1d5db; cursor: pointer;
+    }
+    .check-label input { accent-color: #10b981; width: 16px; height: 16px; }
+
+    .stage-wrap {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: minmax(320px, 1.45fr) minmax(290px, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+    @media (max-width: 940px) {
+      .stage-wrap { grid-template-columns: 1fr; }
+    }
+
+    .video-stage {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #07070d;
+      border: 1px solid #2d2d4a;
+      border-radius: 14px;
+      overflow: hidden;
+      user-select: none;
+      touch-action: none;
+    }
+    .video-stage video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      pointer-events: none;
+    }
+    .draw-overlay {
+      position: absolute;
+      inset: 0;
+      cursor: crosshair;
+    }
+    .draw-overlay.hidden { display: none; }
+    .stage-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: #9ca3af;
+      text-align: center;
+      padding: 20px;
+      background: radial-gradient(circle at center, rgba(139,92,246,0.08), rgba(7,7,13,0.92));
+      pointer-events: none;
+    }
+    .box-game {
+      position: absolute;
+      border: 2px dashed rgba(16, 185, 129, 0.85);
+      background: rgba(16, 185, 129, 0.08);
+      pointer-events: none;
+      color: #6ee7b7;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 7px;
+      border-radius: 6px;
+    }
+    .box-cam {
+      position: absolute;
+      border: 2.5px solid #c084fc;
+      background: rgba(168, 85, 247, 0.22);
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.28);
+      pointer-events: none;
+      color: #f3e8ff;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+    .cam-only-ui.hidden { display: none; }
+    .clean-only-ui { display: none; }
+    .clean-only-ui.visible { display: block; }
+
+    .scrubber-bar {
+      position: relative;
+      height: 20px;
+      margin-top: 10px;
+      background: #0d0d17;
+      border: 1px solid #26263d;
+      border-radius: 999px;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    .scrubber-range {
+      position: absolute;
+      top: 0; bottom: 0;
+      background: rgba(16, 185, 129, 0.26);
+      border-left: 2px solid #34d399;
+      border-right: 2px solid #34d399;
+      pointer-events: none;
+    }
+    .scrubber-clip-mark {
+      position: absolute;
+      top: 3px; bottom: 3px;
+      background: rgba(245, 158, 11, 0.55);
+      border: 1px solid #fbbf24;
+      border-radius: 4px;
+      cursor: pointer;
+      z-index: 2;
+    }
+    .scrubber-playhead {
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 3px;
+      background: #c084fc;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .subcard {
+      background: #0f0f1a; border: 1px solid #24243b; border-radius: 14px; padding: 14px;
+    }
+    .subcard h3 { font-size: 14px; margin-bottom: 10px; color: #e5e7eb; }
+    .slider-row {
+      display: grid; grid-template-columns: 115px 1fr 48px;
+      align-items: center; gap: 8px; margin-bottom: 8px; font-size: 12px; color: #9ca3af;
+    }
+    .slider-row input[type="range"] { width: 100%; accent-color: #8b5cf6; }
+    .slider-val { color: #e5e7eb; text-align: right; font-weight: 600; }
+
+    .vert-blueprint {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px;
+      background: #090912;
+      border: 1px solid #24243b;
+      border-radius: 12px;
+    }
+    .vert-phone {
+      width: 72px;
+      height: 128px;
+      border: 2px solid #3f3f63;
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      background: #05050a;
+    }
+    .vert-top {
+      background: rgba(168, 85, 247, 0.32);
+      border-bottom: 1px dashed #c084fc;
+      display: grid;
+      place-items: center;
+      font-size: 9px;
+      font-weight: 800;
+      color: #f3e8ff;
+    }
+    .vert-bot {
+      flex: 1;
+      background: rgba(16, 185, 129, 0.22);
+      display: grid;
+      place-items: center;
+      font-size: 9px;
+      font-weight: 800;
+      color: #6ee7b7;
+    }
+
+    .time-box {
+      margin-top: 10px; padding: 10px 12px; background: #0d0d17;
+      border: 1px solid #24243b; border-radius: 12px;
+      display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;
+      font-size: 12px; color: #cbd5e1;
+    }
+
+    .loader-box {
+      display: none; background: #19192b; border: 1px solid #3b3b63;
+      border-radius: 14px; padding: 18px; margin-bottom: 20px;
+    }
+    .loader-box.active { display: block; }
+    .progress-bar {
+      width: 100%; height: 8px; background: #26263d; border-radius: 999px;
+      overflow: hidden; margin-top: 10px;
+    }
+    .progress-fill {
+      width: 45%; height: 100%; background: linear-gradient(90deg, #8b5cf6, #10b981);
+      animation: pulseSlide 1.6s infinite ease-in-out;
+    }
+    @keyframes pulseSlide {
+      0% { transform: translateX(-60%); width: 50%; }
+      50% { transform: translateX(80%); width: 70%; }
+      100% { transform: translateX(-60%); width: 50%; }
+    }
+
+    .session-strip {
+      display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+      font-size: 12px; color: #9ca3af; margin-bottom: 12px;
+    }
+    .session-pill {
+      background: #0e0e19; border: 1px solid #25253d; border-radius: 999px; padding: 4px 10px; color: #cbd5e1;
+    }
+
+    .grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 16px;
+    }
+    .clip-card {
+      background: #141422; border: 1px solid #26263d; border-radius: 14px;
+      padding: 14px; display: flex; flex-direction: column; gap: 10px;
+    }
+    .clip-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .clip-title { font-size: 14px; line-height: 1.35; }
+    .variant-bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: space-between; }
+    .var-pill {
+      background: #1a1a2c; color: #cbd5e1; border: 1px solid #2d2d48;
+      border-radius: 8px; padding: 4px 8px; font-size: 11px; font-weight: 600;
+    }
+    .var-pill.active { background: rgba(139,92,246,0.25); color: #fff; border-color: #8b5cf6; }
+    .post-status-btn {
+      font-size: 11px; font-weight: 700; padding: 4px 9px; border-radius: 999px;
+      background: #1e1e32; color: #cbd5e1; border: 1px solid #353554;
+    }
+    .post-status-btn.queued { background: rgba(245,158,11,0.18); color: #fbbf24; border-color: rgba(245,158,11,0.4); }
+    .post-status-btn.posted { background: rgba(16,185,129,0.18); color: #34d399; border-color: rgba(16,185,129,0.4); }
+    .score {
+      background: rgba(245, 158, 11, 0.16); color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap;
+    }
+    .hashtags {
+      font-size: 12px; color: #93c5fd; background: #0e0e19;
+      border: 1px solid #222238; border-radius: 8px; padding: 8px 10px;
+      line-height: 1.4; word-break: break-word;
+    }
+    video.clip-player {
+      width: 100%; max-height: 360px; background: #050509;
+      border-radius: 10px; border: 1px solid #282840;
+    }
+    .reach { font-size: 13px; color: #34d399; font-weight: 600; }
+    .actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; }
+    .actions button { flex: 1; min-width: 72px; padding: 8px 8px; font-size: 12px; }
+
+    .modal-backdrop {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+      z-index: 50; padding: 20px; overflow-y: auto;
+    }
+    .modal-backdrop.open { display: block; }
+    .modal {
+      max-width: 1040px; margin: 20px auto; background: #141422;
+      border: 1px solid #2d2d48; border-radius: 18px; padding: 22px;
+    }
+    .modal-small { max-width: 440px; text-align: center; }
+    .modal-head {
+      display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center; margin-bottom: 16px;
+    }
+    .empty { color: #9ca3af; padding: 24px 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo">
+          <img src="logo.png" alt="kl1niclip logo" onerror="this.style.display='none'; this.parentElement.textContent='K1';" />
+        </div>
+        <div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <strong style="font-size:18px;">Kl1ni Clips</strong>
+            <span class="badge">NO WATERMARK</span>
+          </div>
+          <small id="headerSub" style="color:#9ca3af;">Выдели вебку прямо на видео • Она пойдёт наверх, геймплей — вниз</small>
+        </div>
+      </div>
+
+      <div class="row">
+        <div id="engineStatus" class="status">Проверка движка...</div>
+        <button type="button" class="btn-secondary" onclick="openFolder('output')">📁 Папка клипов</button>
+        <button type="button" class="btn-secondary" onclick="clearServerCache()">🧹 Кэш (<span id="cacheSizeLabel">0 МБ</span>)</button>
+        <button type="button" class="btn-secondary" onclick="openLibrary()">🗂️ Библиотека (<span id="libCount">0</span>)</button>
+      </div>
+    </header>
+
+    <div class="tabs-bar">
+      <div class="tab-group">
+        <button id="tabWebcam" type="button" class="tab-btn active" onclick="switchMode('webcam')">🎥 Вебка + Контент</button>
+        <button id="tabClean" type="button" class="tab-btn" onclick="switchMode('clean')">🎬 Чистая нарезка (без вебки)</button>
+      </div>
+
+      <div class="tab-group">
+        <button id="nicheGaming" type="button" class="btn-preset active" onclick="applyNichePreset('gaming', this)">🎮 Гейминг / Стримы</button>
+        <button id="nicheCinema" type="button" class="btn-preset" onclick="applyNichePreset('cinema', this)">🎞️ Кино / Разборы</button>
+        <button id="nicheTraffic" type="button" class="btn-preset" onclick="applyNichePreset('traffic', this)">🚀 Трафик / Reels</button>
+      </div>
+    </div>
+
+    <section class="panel">
+      <div class="row">
+        <input id="ytUrl" type="text" placeholder="Вставь ссылку на YouTube или загрузи локальный MP4 с ПК..." onkeydown="if(event.key==='Enter'){event.preventDefault();loadVideoPreview();}" />
+        <input id="localFileInput" type="file" accept="video/*" style="display:none;" onchange="uploadLocalFile(event)" />
+        <button type="button" class="btn-secondary" onclick="document.getElementById('localFileInput').click()">📂 Локальный файл</button>
+        <button type="button" class="btn-secondary" onclick="loadVideoPreview()">👁️ Предпросмотр</button>
+        <select id="videoQuality" title="Качество видео">
+          <option value="1080">1080p (Макс. чёткость)</option>
+          <option value="720" selected>720p (HD оптимум)</option>
+          <option value="480">480p (Быстро / малый вес)</option>
+        </select>
+        <select id="aspectRatio">
+          <option value="9:16" selected>9:16 (TikTok / Reels / Shorts)</option>
+          <option value="4:5">4:5 (Instagram)</option>
+          <option value="1:1">1:1 (Квадрат)</option>
+          <option value="4:3">4:3 (Классика)</option>
+          <option value="16:9">16:9 (Горизонтальный)</option>
+        </select>
+        <select id="cutStrategy" title="Режим поиска моментов">
+          <option value="hype" selected>🔥 Пики эмоций (звук)</option>
+          <option value="series">📚 Серия (Часть 1, 2, 3...)</option>
+          <option value="around">🎯 Вокруг таймкода (От)</option>
+        </select>
+        <select id="clipCount">
+          <option value="5" selected>5 клипов</option>
+          <option value="8">8 клипов</option>
+          <option value="10">10 клипов</option>
+        </select>
+        <select id="clipDuration">
+          <option value="10">10 сек (микро-хук)</option>
+          <option value="15">15 сек (микро-хук)</option>
+          <option value="20">20 сек</option>
+          <option value="25" selected>25 сек</option>
+          <option value="30">30 сек</option>
+          <option value="45">45 сек (разбор)</option>
+        </select>
+        <button id="cutBtn" type="button" class="btn-primary" onclick="startProcessing()">⚡ Нарезать без вотермарок</button>
+      </div>
+
+      <div id="historyBar" class="history-bar" style="display:none;"></div>
+
+      <div class="extras-bar">
+        <input id="hookText" type="text" placeholder="Хук-заголовок на клипе (необязательно, например: GTA VI CHECKPOINT • РАЗРЫВ)" />
+        <div class="row">
+          <select id="hookPos" title="Позиция хука">
+            <option value="top" selected>Хук сверху</option>
+            <option value="bottom">Хук снизу</option>
+          </select>
+          <label class="check-label">
+            <input id="coldStart" type="checkbox" />
+            <span>Холодный старт (тизер 2с)</span>
+          </label>
+          <label class="check-label">
+            <input id="dynamicZoom" type="checkbox" />
+            <span>Живой зум</span>
+          </label>
+          <label class="check-label">
+            <input id="normalizeAudio" type="checkbox" checked />
+            <span>Loudnorm</span>
+          </label>
+        </div>
+      </div>
+
+      <div id="stageWrap" class="stage-wrap">
+        <div>
+          <div class="row" style="justify-content:space-between; margin-bottom:8px;">
+            <strong id="stageTitle" style="font-size:14px;">🎥 Выдели зону веб-камеры прямо на видео (зажми мышь и обведи)</strong>
+            <div class="row" style="gap:6px;">
+              <button type="button" class="btn-preset" onclick="togglePlayPreview()">⏯️ Пауза / Играть (Space)</button>
+              <button type="button" class="btn-preset cam-only-ui" onclick="resetGameFull()">🎮 Игра на весь экран</button>
+            </div>
+          </div>
+
+          <div id="videoStage" class="video-stage">
+            <video id="sourcePreviewVideo" controls preload="metadata"></video>
+            <div id="boxGame" class="box-game cam-only-ui">КОНТЕНТ / ГЕЙМПЛЕЙ (вниз)</div>
+            <div id="boxCam" class="box-cam cam-only-ui">ВЕБКА (вверх)</div>
+            <div id="stagePlaceholder" class="stage-placeholder">
+              <strong style="color:#e5e7eb; font-size:15px;">Предпросмотр исходного видео появится здесь</strong>
+              <span>Вставь ссылку на YouTube или выбери <b>«📂 Локальный файл»</b> с компьютера.</span>
+            </div>
+            <div id="drawOverlay" class="draw-overlay"></div>
+          </div>
+
+          <div id="scrubberBar" class="scrubber-bar" title="Кликни для перемотки • Зелёная зона = интервал • Оранжевые метки = нарезанные клипы" onclick="seekScrubber(event)">
+            <div id="scrubberRange" class="scrubber-range" style="left:0%; width:100%;"></div>
+            <div id="scrubberClipMarks"></div>
+            <div id="scrubberPlayhead" class="scrubber-playhead" style="left:0%;"></div>
+          </div>
+
+          <div class="time-box">
+            <div class="row" style="gap:8px;">
+              <span>⏱️ Интервал / Якорь (сек):</span>
+              <input id="rangeStart" type="number" min="0" placeholder="От (I)" oninput="updateScrubber()" />
+              <span>—</span>
+              <input id="rangeEnd" type="number" min="1" placeholder="До (O)" oninput="updateScrubber()" />
+              <button type="button" class="btn-preset" onclick="markStartFromPlayer()">📍 Начало [I]</button>
+              <button type="button" class="btn-preset" onclick="markEndFromPlayer()">🏁 Конец [O]</button>
+              <button type="button" class="btn-preset" onclick="clearTimeRange()">✖ Весь ролик</button>
+            </div>
+          </div>
+
+          <small id="previewMetaTitle" style="color:#9ca3af; display:block; margin-top:8px;">
+            Горячие клавиши: Space — пауза/старт, I — начало интервала, O — конец интервала, Esc — закрыть окно.
+          </small>
+        </div>
+
+        <div id="camSettingsCard" class="subcard cam-only-ui">
+          <h3>📐 Точная подстройка зоны вебки и контента</h3>
+          <div class="row" style="gap:6px; margin-bottom:10px;">
+            <button type="button" class="btn-preset active" onclick="applyCamPreset('bl', this)">Внизу слева</button>
+            <button type="button" class="btn-preset" onclick="applyCamPreset('br', this)">Внизу справа</button>
+            <button type="button" class="btn-preset" onclick="applyCamPreset('tl', this)">Вверху слева</button>
+            <button type="button" class="btn-preset" onclick="applyCamPreset('tr', this)">Вверху справа</button>
+            <button type="button" class="btn-preset" onclick="saveCustomLayoutPreset()">💾 Свой пресет</button>
+          </div>
+
+          <div class="slider-row">
+            <span>Позиция X</span>
+            <input id="camX" type="range" min="0" max="90" value="2" oninput="syncFraming()" />
+            <span id="camXVal" class="slider-val">2%</span>
+          </div>
+          <div class="slider-row">
+            <span>Позиция Y</span>
+            <input id="camY" type="range" min="0" max="90" value="65" oninput="syncFraming()" />
+            <span id="camYVal" class="slider-val">65%</span>
+          </div>
+          <div class="slider-row">
+            <span>Ширина вебки</span>
+            <input id="camW" type="range" min="5" max="100" value="28" oninput="syncFraming()" />
+            <span id="camWVal" class="slider-val">28%</span>
+          </div>
+          <div class="slider-row">
+            <span>Высота вебки</span>
+            <input id="camH" type="range" min="5" max="100" value="30" oninput="syncFraming()" />
+            <span id="camHVal" class="slider-val">30%</span>
+          </div>
+
+          <hr style="border:none; border-top:1px solid #24243b; margin:10px 0;" />
+
+          <div class="slider-row">
+            <span>Вебка сверху</span>
+            <input id="splitRatio" type="range" min="18" max="55" value="30" oninput="syncFraming()" />
+            <span id="splitVal" class="slider-val">30%</span>
+          </div>
+          <div class="slider-row">
+            <span>Контент X</span>
+            <input id="gameX" type="range" min="0" max="60" value="0" oninput="syncFraming()" />
+            <span id="gameXVal" class="slider-val">0%</span>
+          </div>
+          <div class="slider-row">
+            <span>Контент Y</span>
+            <input id="gameY" type="range" min="0" max="60" value="0" oninput="syncFraming()" />
+            <span id="gameYVal" class="slider-val">0%</span>
+          </div>
+          <div class="slider-row">
+            <span>Ширина контента</span>
+            <input id="gameW" type="range" min="30" max="100" value="100" oninput="syncFraming()" />
+            <span id="gameWVal" class="slider-val">100%</span>
+          </div>
+          <div class="slider-row">
+            <span>Высота контента</span>
+            <input id="gameH" type="range" min="30" max="100" value="100" oninput="syncFraming()" />
+            <span id="gameHVal" class="slider-val">100%</span>
+          </div>
+
+          <div class="vert-blueprint">
+            <div class="vert-phone">
+              <div id="vertTopPreview" class="vert-top" style="height:30%;">ВЕБКА</div>
+              <div class="vert-bot">КОНТЕНТ</div>
+            </div>
+            <div style="font-size:12px; color:#9ca3af; line-height:1.45;">
+              <strong style="color:#e5e7eb; display:block; margin-bottom:2px;">Макет итогового 9:16</strong>
+              Сверху будет вебка (<span id="vertTopLabel">30%</span>), снизу — геймплей (<span id="vertBotLabel">70%</span>).
+            </div>
+          </div>
+        </div>
+
+        <div id="cleanSettingsCard" class="subcard clean-only-ui">
+          <h3>🎯 Настройки чистой нарезки</h3>
+          <p style="font-size:12px; color:#9ca3af; margin-bottom:12px; line-height:1.45;">
+            Видео режется без рамок веб-камеры в выбранном качестве (<b>1080p / 720p / 480p</b>). Сдвиг по горизонтали помогает удержать нужный объект в кадре.
+          </p>
+          <div class="slider-row">
+            <span>Сдвиг по X</span>
+            <input id="panX" type="range" min="0" max="100" value="50" oninput="syncPanLabel()" />
+            <span id="panXVal" class="slider-val">50%</span>
+          </div>
+          <div class="row" style="gap:6px; margin-top:8px;">
+            <button type="button" class="btn-preset" onclick="setPan(0)">Лево</button>
+            <button type="button" class="btn-preset active" onclick="setPan(50)">Центр</button>
+            <button type="button" class="btn-preset" onclick="setPan(100)">Право</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div id="loaderBox" class="loader-box">
+      <strong id="loaderTitle">Анализируем видео, ищем пики эмоций и режем клипы...</strong>
+      <p id="loaderSub" style="color:#9ca3af; font-size:13px; margin-top:4px;">Рендерим клипы в выбранном качестве без потери чёткости и без водяных знаков.</p>
+      <div class="progress-bar"><div class="progress-fill"></div></div>
+    </div>
+
+    <section class="panel">
+      <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h2>🔥 Готовые нарезки (предпросмотр реального видео)</h2>
+        <div class="row">
+          <button type="button" class="btn-secondary" onclick="clearCurrentScreen()">🧹 Очистить экран</button>
+          <button type="button" class="btn-secondary" onclick="exportClipsTxt(currentClips)">📄 Экспорт .txt</button>
+          <button type="button" class="btn-green" onclick="downloadAllZip(currentClips)">📦 Скачать все (ZIP)</button>
+        </div>
+      </div>
+
+      <div id="sessionStrip" class="session-strip"></div>
+
+      <div id="clipsGrid" class="grid">
+        <p class="empty">Выбери вкладку, пресет ниши, качество (1080p / 720p / 480p), вставь ссылку или выбери файл и нажми «Нарезать без вотермарок».</p>
+      </div>
+    </section>
+  </div>
+
+  <div id="libModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-head">
+        <h2>🗂️ Библиотека клипов Kl1ni Clips</h2>
+        <div class="row">
+          <select id="libQualityFilter" onchange="renderLibrary()">
+            <option value="all" selected>Все качества</option>
+            <option value="1080p">1080p</option>
+            <option value="720p">720p</option>
+            <option value="480p">480p</option>
+          </select>
+          <button type="button" class="btn-secondary" onclick="openFolder('output')">📁 Папка клипов</button>
+          <button type="button" class="btn-secondary" onclick="exportClipsTxt(libraryClips)">📄 Экспорт .txt</button>
+          <button type="button" class="btn-green" onclick="downloadAllZip(libraryClips)">📦 Скачать ZIP</button>
+          <button type="button" class="btn-secondary" onclick="loadExistingFromServer()">🔄 Обновить</button>
+          <button type="button" class="btn-secondary" onclick="closeLibrary()">✖ Закрыть</button>
+        </div>
+      </div>
+      <div id="libGrid" class="grid"></div>
+    </div>
+  </div>
+
+  <div id="phoneModal" class="modal-backdrop">
+    <div class="modal modal-small">
+      <div class="modal-head">
+        <h3>📱 Перенос на телефон</h3>
+        <button type="button" class="btn-secondary" onclick="closePhoneModal()">✖</button>
+      </div>
+      <p style="font-size:13px; color:#cbd5e1; margin-bottom:12px;">
+        Отсканируй QR-код камерой телефона (оба устройства должны быть в одном Wi-Fi) или открой прямую ссылку:
+      </p>
+      <img id="phoneQrImg" alt="QR Code" style="width:200px; height:200px; border-radius:12px; background:#fff; padding:8px; margin:0 auto 12px; display:block;" />
+      <input id="phoneDirectUrl" type="text" readonly style="width:100%; margin-bottom:12px; font-size:12px;" />
+      <div class="row" style="justify-content:center;">
+        <button type="button" class="btn-green" onclick="copyPhoneLink()">📋 Копировать ссылку</button>
+        <a id="phoneOpenBtn" href="#" target="_blank" class="btn-primary" style="text-decoration:none; padding:10px 16px; border-radius:10px; font-size:14px; font-weight:600;">Открыть MP4</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = window.location.origin.startsWith("http") ? window.location.origin : "http://127.0.0.1:5000";
+    let currentMode = "webcam";
+    let currentNiche = "gaming";
+    let currentClips = [];
+    let libraryClips = [];
+    let sessionStats = { created: 0, exported: 0 };
+
+    function getRealVideoUrl(clip) {
+      return clip.url || clip.videoUrl || "";
+    }
+
+    document.addEventListener("play", (e) => {
+      if (e.target && e.target.tagName === "VIDEO") {
+        document.querySelectorAll("video").forEach(v => {
+          if (v !== e.target && !v.paused) {
+            v.pause();
+          }
+        });
+      }
+    }, true);
+
+    function updateSessionStrip() {
+      const el = document.getElementById("sessionStrip");
+      const postedCount = currentClips.filter(c => c.postStatus === "posted").length;
+      el.innerHTML = `
+        <span class="session-pill">✂️ Нарезано за сессию: <b>${sessionStats.created}</b></span>
+        <span class="session-pill">✅ Залито из текущей пачки: <b>${postedCount}/${currentClips.length}</b></span>
+        <span class="session-pill">📦 Выгрузок (ZIP/TXT): <b>${sessionStats.exported}</b></span>
+      `;
+    }
+
+    function saveUrlHistory(url, label) {
+      if (!url) return;
+      try {
+        const key = "kl1ni_url_history";
+        const list = JSON.parse(localStorage.getItem(key) || "[]").filter(x => x.url !== url);
+        list.unshift({ url, label: label || url });
+        localStorage.setItem(key, JSON.stringify(list.slice(0, 6)));
+        renderUrlHistory();
+      } catch (_) {}
+    }
+
+    function renderUrlHistory() {
+      const bar = document.getElementById("historyBar");
+      try {
+        const list = JSON.parse(localStorage.getItem("kl1ni_url_history") || "[]");
+        if (!list.length) {
+          bar.style.display = "none";
+          return;
+        }
+        bar.style.display = "flex";
+        bar.innerHTML = `<span>Недавние:</span>`;
+        list.forEach(item => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "hist-chip";
+          btn.title = item.label;
+          btn.textContent = item.label;
+          btn.addEventListener("click", () => useHistoryUrl(item.url));
+          bar.appendChild(btn);
+        });
+      } catch (_) {}
+    }
+
+    function useHistoryUrl(url) {
+      document.getElementById("ytUrl").value = url;
+      loadVideoPreview();
+    }
+
+    function saveCustomLayoutPreset() {
+      try {
+        const preset = {
+          camX: document.getElementById("camX").value,
+          camY: document.getElementById("camY").value,
+          camW: document.getElementById("camW").value,
+          camH: document.getElementById("camH").value,
+          splitRatio: document.getElementById("splitRatio").value,
+          gameX: document.getElementById("gameX").value,
+          gameY: document.getElementById("gameY").value,
+          gameW: document.getElementById("gameW").value,
+          gameH: document.getElementById("gameH").value
+        };
+        localStorage.setItem("kl1ni_custom_layout", JSON.stringify(preset));
+        alert("Свой пресет расположения вебки и игры сохранён в браузере!");
+      } catch (_) {}
+    }
+
+    function loadCustomLayoutPreset() {
+      try {
+        const raw = localStorage.getItem("kl1ni_custom_layout");
+        if (!raw) return;
+        const p = JSON.parse(raw);
+        Object.keys(p).forEach(k => {
+          const el = document.getElementById(k);
+          if (el) el.value = p[k];
+        });
+      } catch (_) {}
+    }
+
+    function renderScrubberClipMarks() {
+      const box = document.getElementById("scrubberClipMarks");
+      const vid = document.getElementById("sourcePreviewVideo");
+      const dur = vid.duration || 0;
+      if (!dur || !isFinite(dur) || !currentClips.length) {
+        box.innerHTML = "";
+        return;
+      }
+      box.innerHTML = currentClips.map((c, idx) => {
+        if (typeof c.start_sec !== "number") return "";
+        const cDur = c.duration || 20;
+        const left = Math.max(0, Math.min(98, (c.start_sec / dur) * 100));
+        const width = Math.max(1.5, Math.min(100 - left, (cDur / dur) * 100));
+        return `<div class="scrubber-clip-mark" style="left:${left}%; width:${width}%;" title="Клип #${idx + 1} (${c.start_sec} сек)" onclick="jumpToSecond(event, ${c.start_sec})"></div>`;
+      }).join("");
+    }
+
+    function jumpToSecond(e, sec) {
+      e.stopPropagation();
+      const vid = document.getElementById("sourcePreviewVideo");
+      if (!vid.src) return;
+      vid.currentTime = sec;
+      updateScrubber();
+    }
+
+    function updateScrubber() {
+      const vid = document.getElementById("sourcePreviewVideo");
+      const dur = vid.duration || 0;
+      const playhead = document.getElementById("scrubberPlayhead");
+      const rangeEl = document.getElementById("scrubberRange");
+      if (!dur || !isFinite(dur)) {
+        playhead.style.left = "0%";
+        rangeEl.style.left = "0%";
+        rangeEl.style.width = "100%";
+        return;
+      }
+      const curPct = Math.max(0, Math.min(100, (vid.currentTime / dur) * 100));
+      playhead.style.left = `${curPct}%`;
+
+      const sVal = parseFloat(document.getElementById("rangeStart").value);
+      const eVal = parseFloat(document.getElementById("rangeEnd").value);
+      const startSec = isNaN(sVal) ? 0 : Math.max(0, Math.min(dur, sVal));
+      const endSec = isNaN(eVal) ? dur : Math.max(startSec, Math.min(dur, eVal));
+
+      const leftPct = (startSec / dur) * 100;
+      const widthPct = Math.max(0, ((endSec - startSec) / dur) * 100);
+      rangeEl.style.left = `${leftPct}%`;
+      rangeEl.style.width = `${widthPct}%`;
+      renderScrubberClipMarks();
+    }
+
+    function seekScrubber(e) {
+      const vid = document.getElementById("sourcePreviewVideo");
+      const dur = vid.duration || 0;
+      if (!dur || !isFinite(dur)) return;
+      const rect = document.getElementById("scrubberBar").getBoundingClientRect();
+      const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      vid.currentTime = ratio * dur;
+      updateScrubber();
+    }
+
+    const previewVidEl = document.getElementById("sourcePreviewVideo");
+    previewVidEl.addEventListener("timeupdate", updateScrubber);
+    previewVidEl.addEventListener("loadedmetadata", updateScrubber);
+
+    document.addEventListener("keydown", (e) => {
+      const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
+      if (tag === "input" || tag === "textarea" || tag === "select") {
+        if (e.key === "Escape") {
+          closeLibrary();
+          closePhoneModal();
+        }
+        return;
+      }
+      if (e.code === "Space") {
+        e.preventDefault();
+        togglePlayPreview();
+      } else if (e.key === "i" || e.key === "I" || e.key === "ш" || e.key === "Ш") {
+        markStartFromPlayer();
+      } else if (e.key === "o" || e.key === "O" || e.key === "щ" || e.key === "Щ") {
+        markEndFromPlayer();
+      } else if (e.key === "Escape") {
+        closeLibrary();
+        closePhoneModal();
+      }
+    });
+
+    function applyNichePreset(niche, btnEl) {
+      currentNiche = niche;
+      document.querySelectorAll(".tabs-bar .btn-preset").forEach(b => b.classList.remove("active"));
+      if (btnEl) btnEl.classList.add("active");
+
+      if (niche === "cinema") {
+        document.getElementById("aspectRatio").value = "9:16";
+        document.getElementById("clipDuration").value = "30";
+      } else if (niche === "traffic") {
+        document.getElementById("aspectRatio").value = "9:16";
+        document.getElementById("clipDuration").value = "15";
+      } else {
+        document.getElementById("aspectRatio").value = "9:16";
+        document.getElementById("clipDuration").value = "25";
+      }
+    }
+
+    function switchMode(mode) {
+      currentMode = mode;
+      const isClean = mode === "clean";
+      document.getElementById("tabWebcam").classList.toggle("active", !isClean);
+      document.getElementById("tabClean").classList.toggle("active", isClean);
+
+      document.querySelectorAll(".cam-only-ui").forEach(el => {
+        el.classList.toggle("hidden", isClean);
+      });
+      document.getElementById("cleanSettingsCard").classList.toggle("visible", isClean);
+      document.getElementById("drawOverlay").classList.toggle("hidden", isClean);
+
+      document.getElementById("headerSub").textContent = isClean
+        ? "Чистая нарезка по ссылке без веб-камеры • Выбор качества 1080p / 720p / 480p"
+        : "Выдели вебку прямо на видео • Она пойдёт наверх, геймплей — вниз";
+
+      document.getElementById("stageTitle").textContent = isClean
+        ? "🎬 Предпросмотр видео (режим чистой нарезки без веб-камеры)"
+        : "🎥 Выдели зону веб-камеры прямо на видео (зажми мышь и обведи)";
+    }
+
+    function setPan(val) {
+      document.getElementById("panX").value = val;
+      syncPanLabel();
+    }
+
+    function syncPanLabel() {
+      const val = Number(document.getElementById("panX").value);
+      document.getElementById("panXVal").textContent = `${val}%`;
+    }
+
+    function markStartFromPlayer() {
+      const vid = document.getElementById("sourcePreviewVideo");
+      document.getElementById("rangeStart").value = Math.floor(vid.currentTime || 0);
+      updateScrubber();
+    }
+
+    function markEndFromPlayer() {
+      const vid = document.getElementById("sourcePreviewVideo");
+      document.getElementById("rangeEnd").value = Math.max(1, Math.ceil(vid.currentTime || 30));
+      updateScrubber();
+    }
+
+    function clearTimeRange() {
+      document.getElementById("rangeStart").value = "";
+      document.getElementById("rangeEnd").value = "";
+      updateScrubber();
+    }
+
+    function clearCurrentScreen() {
+      currentClips = [];
+      renderClipsGrid();
+      renderScrubberClipMarks();
+      updateSessionStrip();
+    }
+
+    function applyCamPreset(preset, btnEl) {
+      document.querySelectorAll("#camSettingsCard .btn-preset").forEach(b => b.classList.remove("active"));
+      if (btnEl) btnEl.classList.add("active");
+
+      const presets = {
+        bl: { x: 2,  y: 65, w: 28, h: 30 },
+        br: { x: 70, y: 65, w: 28, h: 30 },
+        tl: { x: 2,  y: 4,  w: 28, h: 30 },
+        tr: { x: 70, y: 4,  w: 28, h: 30 }
+      };
+      const p = presets[preset] || presets.bl;
+      document.getElementById("camX").value = p.x;
+      document.getElementById("camY").value = p.y;
+      document.getElementById("camW").value = p.w;
+      document.getElementById("camH").value = p.h;
+      syncFraming();
+    }
+
+    function resetGameFull() {
+      document.getElementById("gameX").value = 0;
+      document.getElementById("gameY").value = 0;
+      document.getElementById("gameW").value = 100;
+      document.getElementById("gameH").value = 100;
+      syncFraming();
+    }
+
+    function togglePlayPreview() {
+      const vid = document.getElementById("sourcePreviewVideo");
+      if (!vid.src) return;
+      if (vid.paused) vid.play().catch(() => {});
+      else vid.pause();
+    }
+
+    function syncFraming() {
+      const camX = Number(document.getElementById("camX").value);
+      const camY = Number(document.getElementById("camY").value);
+      const camW = Number(document.getElementById("camW").value);
+      const camH = Number(document.getElementById("camH").value);
+
+      const split = Number(document.getElementById("splitRatio").value);
+      const gameX = Number(document.getElementById("gameX").value);
+      const gameY = Number(document.getElementById("gameY").value);
+      const gameW = Number(document.getElementById("gameW").value);
+      const gameH = Number(document.getElementById("gameH").value);
+
+      document.getElementById("camXVal").textContent = `${camX}%`;
+      document.getElementById("camYVal").textContent = `${camY}%`;
+      document.getElementById("camWVal").textContent = `${camW}%`;
+      document.getElementById("camHVal").textContent = `${camH}%`;
+
+      document.getElementById("splitVal").textContent = `${split}%`;
+      document.getElementById("gameXVal").textContent = `${gameX}%`;
+      document.getElementById("gameYVal").textContent = `${gameY}%`;
+      document.getElementById("gameWVal").textContent = `${gameW}%`;
+      document.getElementById("gameHVal").textContent = `${gameH}%`;
+
+      document.getElementById("vertTopPreview").style.height = `${split}%`;
+      document.getElementById("vertTopLabel").textContent = `${split}%`;
+      document.getElementById("vertBotLabel").textContent = `${100 - split}%`;
+
+      const boxGame = document.getElementById("boxGame");
+      boxGame.style.left = `${gameX}%`;
+      boxGame.style.top = `${gameY}%`;
+      boxGame.style.width = `${gameW}%`;
+      boxGame.style.height = `${gameH}%`;
+
+      const boxCam = document.getElementById("boxCam");
+      boxCam.style.left = `${camX}%`;
+      boxCam.style.top = `${camY}%`;
+      boxCam.style.width = `${camW}%`;
+      boxCam.style.height = `${camH}%`;
+    }
+
+    (function initDragSelection() {
+      const overlay = document.getElementById("drawOverlay");
+      let startX = 0, startY = 0, dragging = false;
+
+      function getRelPct(e) {
+        const rect = overlay.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const px = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+        const py = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
+        return { px, py };
+      }
+
+      function onStart(e) {
+        if (currentMode === "clean") return;
+        const { px, py } = getRelPct(e);
+        startX = px;
+        startY = py;
+        dragging = true;
+      }
+
+      function onMove(e) {
+        if (!dragging || currentMode === "clean") return;
+        const { px, py } = getRelPct(e);
+        const x1 = Math.min(startX, px);
+        const y1 = Math.min(startY, py);
+        const x2 = Math.max(startX, px);
+        const y2 = Math.max(startY, py);
+        const w = Math.max(0.05, x2 - x1);
+        const h = Math.max(0.05, y2 - y1);
+
+        document.getElementById("camX").value = Math.round(x1 * 100);
+        document.getElementById("camY").value = Math.round(y1 * 100);
+        document.getElementById("camW").value = Math.min(100, Math.round(w * 100));
+        document.getElementById("camH").value = Math.min(100, Math.round(h * 100));
+        syncFraming();
+      }
+
+      function onEnd() {
+        dragging = false;
+      }
+
+      overlay.addEventListener("mousedown", onStart);
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onEnd);
+
+      overlay.addEventListener("touchstart", onStart, { passive: true });
+      window.addEventListener("touchmove", onMove, { passive: true });
+      window.addEventListener("touchend", onEnd);
+    })();
+
+    async function uploadLocalFile(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      const metaEl = document.getElementById("previewMetaTitle");
+      const placeholder = document.getElementById("stagePlaceholder");
+      const vid = document.getElementById("sourcePreviewVideo");
+
+      placeholder.style.display = "flex";
+      placeholder.innerHTML = `<strong style="color:#e5e7eb;">Загружаем локальный файл на сервер...</strong>`;
+      metaEl.textContent = `⏳ Загружаем ${file.name}...`;
+
+      try {
+        const fd = new FormData();
+        fd.append("file", file);
+        const res = await fetch(`${API_BASE}/api/upload-local`, { method: "POST", body: fd });
+        const data = await res.json();
+        if (!res.ok || !data.local_ref) throw new Error(data.error || "Ошибка загрузки файла");
+
+        document.getElementById("ytUrl").value = data.local_ref;
+        vid.src = data.stream_url;
+        vid.muted = true;
+        vid.load();
+        vid.play().catch(() => {});
+
+        placeholder.style.display = "none";
+        metaEl.textContent = `✅ Локальный файл: ${data.title}`;
+        saveUrlHistory(data.local_ref, `📂 ${data.title}`);
+        await checkEngine();
+      } catch (err) {
+        metaEl.textContent = `❌ Ошибка загрузки файла: ${err.message}`;
+        alert("Ошибка загрузки локального файла: " + err.message);
+      } finally {
+        event.target.value = "";
+      }
+    }
+
+    async function loadVideoPreview() {
+      const url = document.getElementById("ytUrl").value.trim();
+      const quality = document.getElementById("videoQuality").value;
+      if (!url) {
+        alert("Вставь ссылку на видео с YouTube или выбери локальный файл!");
+        return;
+      }
+
+      const metaEl = document.getElementById("previewMetaTitle");
+      const placeholder = document.getElementById("stagePlaceholder");
+      const vid = document.getElementById("sourcePreviewVideo");
+
+      placeholder.style.display = "flex";
+      placeholder.innerHTML = `
+        <strong style="color:#e5e7eb; font-size:15px;">Загружаем видео (${quality}p) для предпросмотра...</strong>
+        <span>Подожди немного — сервер готовит локальный поток выбранного качества.</span>
+      `;
+      metaEl.textContent = `⏳ Скачиваем/открываем видео (${quality}p) для предпросмотра...`;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/preview`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url, quality })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.stream_url) {
+          throw new Error(data.error || "Сервер не вернул видео для предпросмотра");
+        }
+
+        vid.src = data.stream_url;
+        vid.muted = true;
+        vid.load();
+        vid.play().catch(() => {});
+
+        placeholder.style.display = "none";
+        metaEl.textContent = data.title
+          ? `✅ [${data.quality || quality + "p"}] ${data.title}`
+          : `✅ Видео (${quality}p) загружено.`;
+        saveUrlHistory(url, data.title || url);
+        await checkEngine();
+      } catch (err) {
+        placeholder.style.display = "flex";
+        placeholder.innerHTML = `
+          <strong style="color:#f87171; font-size:15px;">Не удалось загрузить предпросмотр</strong>
+          <span>${err.message}</span>
+        `;
+        metaEl.textContent = `❌ Ошибка предпросмотра: ${err.message}`;
+        alert("Ошибка при загрузке предпросмотра: " + err.message);
+      }
+    }
+
+    function getFramingPayload() {
+      return {
+        split_ratio: Number(document.getElementById("splitRatio").value) / 100,
+        cam: {
+          x: Number(document.getElementById("camX").value) / 100,
+          y: Number(document.getElementById("camY").value) / 100,
+          w: Number(document.getElementById("camW").value) / 100,
+          h: Number(document.getElementById("camH").value) / 100
+        },
+        game: {
+          x: Number(document.getElementById("gameX").value) / 100,
+          y: Number(document.getElementById("gameY").value) / 100,
+          w: Number(document.getElementById("gameW").value) / 100,
+          h: Number(document.getElementById("gameH").value) / 100
+        }
+      };
+    }
+
+    async function checkEngine() {
+      const el = document.getElementById("engineStatus");
+      try {
+        const res = await fetch(`${API_BASE}/ping`);
+        if (res.ok) {
+          const info = await res.json();
+          const lanSuffix = info.lan_ip && info.lan_ip !== "127.0.0.1" ? ` • Wi-Fi: ${info.lan_ip}:5000` : "";
+          const encSuffix = info.encoder ? ` • ${info.encoder}` : "";
+          el.textContent = `● Kl1ni Engine: Онлайн${encSuffix}${lanSuffix}`;
+          el.classList.add("online");
+          if (typeof info.cache_mb === "number") {
+            document.getElementById("cacheSizeLabel").textContent = `${info.cache_mb} МБ`;
+          }
+          await loadExistingFromServer();
+          return;
+        }
+      } catch (_) {}
+      el.textContent = "○ Движок не запущен (запусти python server.py)";
+      el.classList.remove("online");
+    }
+
+    async function openFolder(target) {
+      try {
+        await fetch(`${API_BASE}/api/open-folder`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ target })
+        });
+      } catch (_) {}
+    }
+
+    async function clearServerCache() {
+      try {
+        const res = await fetch(`${API_BASE}/api/cache/clear`, { method: "POST" });
+        const data = await res.json();
+        document.getElementById("cacheSizeLabel").textContent = "0 МБ";
+        alert(`Кэш очищен: удалено файлов ${data.removed || 0}, освобождено ${data.freed_mb || 0} МБ.`);
+      } catch (err) {
+        alert("Не удалось очистить кэш: " + err.message);
+      }
+    }
+
+    async function rerenderSingle(idx) {
+      const clip = currentClips[idx];
+      if (!clip || !clip.source_url) {
+        alert("Ререндер доступен для клипов текущей сессии.");
+        return;
+      }
+      const framing = getFramingPayload();
+      try {
+        const res = await fetch(`${API_BASE}/api/rerender-clip`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            url: clip.source_url,
+            start_sec: clip.start_sec || 0,
+            duration: clip.duration || Number(document.getElementById("clipDuration").value),
+            mode: currentMode,
+            quality: document.getElementById("videoQuality").value,
+            aspect_ratio: document.getElementById("aspectRatio").value,
+            pan_x: Number(document.getElementById("panX").value) / 100,
+            normalize_audio: document.getElementById("normalizeAudio").checked,
+            cold_start: document.getElementById("coldStart").checked,
+            dynamic_zoom: document.getElementById("dynamicZoom").checked,
+            hook_text: document.getElementById("hookText").value.trim(),
+            hook_pos: document.getElementById("hookPos").value,
+            split_ratio: framing.split_ratio,
+            cam: framing.cam,
+            game: framing.game
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Ошибка ререндера");
+
+        currentClips[idx] = {
+          ...clip,
+          filename: data.filename,
+          quality: data.quality,
+          url: data.url,
+          videoUrl: data.videoUrl
+        };
+        renderClipsGrid();
+        await loadExistingFromServer();
+      } catch (err) {
+        alert("Ошибка ререндера: " + err.message);
+      }
+    }
+
+    function shuffleHooks(collectionName, idx) {
+      const arr = collectionName === "lib" ? libraryClips : currentClips;
+      const clip = arr[idx];
+      if (!clip) return;
+      const base = (clip.title || `Клип #${idx + 1}`).replace(/^(🔥|⚡|👀|🤯|🎯)\s*/, "");
+      clip.title_variants = [
+        `🔥 ${base}`,
+        `Никто не верил, но это случилось • ${base}`,
+        `Смотри до конца: развязка в ${base}`
+      ];
+      clip.activeVariant = (clip.activeVariant + 1) % clip.title_variants.length;
+      clip.title = clip.title_variants[clip.activeVariant];
+      if (collectionName === "lib") renderLibrary();
+      else renderClipsGrid();
+    }
+
+    async function deleteClip(filename) {
+      if (!filename) return;
+      try {
+        const res = await fetch(`${API_BASE}/api/clips/${encodeURIComponent(filename)}`, { method: "DELETE" });
+        if (!res.ok) return;
+        currentClips = currentClips.filter(c => (c.filename || c.id) !== filename);
+        libraryClips = libraryClips.filter(c => (c.filename || c.id) !== filename);
+        updateLibCount();
+        renderClipsGrid();
+        renderLibrary();
+        renderScrubberClipMarks();
+        updateSessionStrip();
+      } catch (_) {}
+    }
+
+    function exportClipsTxt(list) {
+      if (!list || !list.length) {
+        alert("Нет клипов для экспорта.");
+        return;
+      }
+      const lines = list.map((c, idx) => {
+        const title = c.title || `Клип #${idx + 1}`;
+        const tags = c.hashtags || "";
+        const url = getRealVideoUrl(c);
+        return `${idx + 1}. ${title}\nТеги: ${tags}\nФайл: ${url}\n`;
+      });
+      const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = "Kl1niClips_Titles_Tags.txt";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 4000);
+      sessionStats.exported += 1;
+      updateSessionStrip();
+    }
+
+    async function downloadAllZip(list) {
+      const names = (list || [])
+        .map(c => c.filename || (getRealVideoUrl(c).split("/").pop()))
+        .filter(Boolean);
+      if (!names.length) {
+        alert("Нет готовых клипов для скачивания в ZIP.");
+        return;
+      }
+      try {
+        const res = await fetch(`${API_BASE}/api/download-zip`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ filenames: names })
+        });
+        if (!res.ok) throw new Error("Не удалось собрать ZIP");
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "Kl1niClips_Batch.zip";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+        sessionStats.exported += 1;
+        updateSessionStrip();
+      } catch (err) {
+        alert("Ошибка ZIP: " + err.message);
+      }
+    }
+
+    async function loadExistingFromServer() {
+      try {
+        const res = await fetch(`${API_BASE}/api/clips`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (Array.isArray(data.clips)) {
+          libraryClips = data.clips.map(c => ({
+            ...c,
+            activeVariant: 0,
+            postStatus: "draft",
+            filename: c.filename || c.id,
+            url: getRealVideoUrl(c),
+            videoUrl: getRealVideoUrl(c)
+          }));
+          updateLibCount();
+          renderLibrary();
+        }
+      } catch (_) {}
+    }
+
+    function updateLibCount() {
+      document.getElementById("libCount").textContent = String(libraryClips.length);
+    }
+
+    function copyText(text) {
+      navigator.clipboard?.writeText(text);
+    }
+
+    function copyPostBundleByIndex(collectionName, idx, btnEl) {
+      const arr = collectionName === "lib" ? libraryClips : currentClips;
+      const clip = arr[idx];
+      if (!clip) return;
+      const variants = clip.title_variants && clip.title_variants.length ? clip.title_variants : [clip.title || `Клип #${idx + 1}`];
+      const title = variants[clip.activeVariant || 0] || clip.title || `Клип #${idx + 1}`;
+      const tags = clip.hashtags || "#tiktok #reels #shorts #гейминг #рек";
+      const bundle = `${title}\n\nСмотри до конца и пиши мнение в комментариях 👇\n\n${tags}`;
+      copyText(bundle);
+      if (btnEl) {
+        const prev = btnEl.textContent;
+        btnEl.textContent = "✓ Копия";
+        setTimeout(() => { btnEl.textContent = prev; }, 1100);
+      }
+    }
+
+    function cyclePostStatus(collectionName, idx) {
+      const arr = collectionName === "lib" ? libraryClips : currentClips;
+      if (!arr[idx]) return;
+      const order = ["draft", "queued", "posted"];
+      const cur = arr[idx].postStatus || "draft";
+      arr[idx].postStatus = order[(order.indexOf(cur) + 1) % order.length];
+      if (collectionName === "lib") renderLibrary();
+      else renderClipsGrid();
+      updateSessionStrip();
+    }
+
+    function selectClipVariant(collectionName, idx, vIdx) {
+      const arr = collectionName === "lib" ? libraryClips : currentClips;
+      if (!arr[idx]) return;
+      const variants = arr[idx].title_variants || [arr[idx].title];
+      arr[idx].activeVariant = vIdx;
+      arr[idx].title = variants[vIdx] || arr[idx].title;
+      if (collectionName === "lib") renderLibrary();
+      else renderClipsGrid();
+    }
+
+    function clipCardHtml(clip, idx, prefix, collectionName) {
+      const videoSrc = getRealVideoUrl(clip);
+      const fname = clip.filename || (videoSrc.split("/").pop() || "");
+      const variants = clip.title_variants && clip.title_variants.length ? clip.title_variants : [clip.title || `Клип #${idx + 1}`];
+      const activeV = clip.activeVariant || 0;
+      const title = variants[activeV] || clip.title || `Клип #${idx + 1}`;
+      const tags = clip.hashtags || "#tiktok #reels #shorts #гейминг #рек";
+      const qLabel = clip.quality ? ` • ${clip.quality}` : "";
+      const safeFile = `${prefix}_${idx + 1}.mp4`;
+
+      const st = clip.postStatus || "draft";
+      const stLabel = st === "posted" ? "✅ Залито" : (st === "queued" ? "⏳ В очереди" : "📝 Черновик");
+
+      const pillsHtml = variants.length > 1
+        ? variants.map((_, vIdx) => `<button type="button" class="var-pill ${vIdx === activeV ? "active" : ""}" onclick="selectClipVariant('${collectionName}', ${idx}, ${vIdx})">Хук ${vIdx + 1}</button>`).join("")
+        : "";
+
+      const rerenderBtn = (collectionName === "cur" && clip.source_url)
+        ? `<button type="button" class="btn-secondary" title="Пересобрать с текущими настройками" onclick="rerenderSingle(${idx})">♻️ Ререндер</button>`
+        : "";
+
+      return `
+        <div class="clip-card">
+          <div class="clip-top">
+            <strong class="clip-title">${title}</strong>
+            <span class="score">🔥 ${clip.score || 92}/100</span>
+          </div>
+          <div class="variant-bar">
+            <div class="row" style="gap:5px;">
+              ${pillsHtml}
+              <button type="button" class="var-pill" onclick="shuffleHooks('${collectionName}', ${idx})">🔄</button>
+            </div>
+            <button type="button" class="post-status-btn ${st}" onclick="cyclePostStatus('${collectionName}', ${idx})">${stLabel}</button>
+          </div>
+          <div class="reach">📈 ${clip.estimated_reach || "180K – 450K охватов"} • ${clip.ratio || "9:16"}${qLabel}</div>
+          <video class="clip-player" src="${videoSrc}" controls preload="metadata" playsinline></video>
+          <div class="hashtags">${tags}</div>
+          <div class="actions">
+            <button type="button" class="btn-green" onclick="downloadToPc('${videoSrc}', '${safeFile}')">💻 На ПК</button>
+            <button type="button" class="btn-secondary" onclick="sendToPhone('${videoSrc}', '${title.replace(/'/g, "")}')">📱 Телефон</button>
+            <button type="button" class="btn-secondary" onclick="copyPostBundleByIndex('${collectionName}', ${idx}, this)">📝 Пост</button>
+            ${rerenderBtn}
+            <button type="button" class="btn-danger" onclick="deleteClip('${fname}')">🗑️</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderClipsGrid() {
+      const grid = document.getElementById("clipsGrid");
+      if (!currentClips.length) {
+        grid.innerHTML = `<p class="empty">Нарезанные видео появятся здесь сразу после обработки ссылки или локального файла.</p>`;
+        return;
+      }
+      grid.innerHTML = currentClips.map((clip, idx) => clipCardHtml(clip, idx, "Kl1niClip", "cur")).join("");
+    }
+
+    function renderLibrary() {
+      const grid = document.getElementById("libGrid");
+      const qFilter = document.getElementById("libQualityFilter")?.value || "all";
+      const filtered = qFilter === "all"
+        ? libraryClips
+        : libraryClips.filter(c => (c.quality || "").toLowerCase() === qFilter.toLowerCase());
+
+      if (!filtered.length) {
+        grid.innerHTML = `<p class="empty">Нет клипов под выбранный фильтр.</p>`;
+        return;
+      }
+      grid.innerHTML = filtered.map((clip, idx) => clipCardHtml(clip, idx, "Kl1niLib", "lib")).join("");
+    }
+
+    async function downloadToPc(url, fileName) {
+      if (!url) return alert("Ссылка на видео не найдена");
+      try {
+        const dlUrl = url.includes("?") ? `${url}&download=1` : `${url}?download=1`;
+        const resp = await fetch(dlUrl);
+        const blob = await resp.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = fileName.endsWith(".mp4") ? fileName : `${fileName}.mp4`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+      } catch (_) {
+        window.open(url, "_blank");
+      }
+    }
+
+    async function sendToPhone(url, title) {
+      if (!url) return;
+      try {
+        const resp = await fetch(url);
+        const blob = await resp.blob();
+        const file = new File([blob], "Kl1niClip.mp4", { type: "video/mp4" });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ title, files: [file] });
+          return;
+        }
+      } catch (_) {}
+
+      const dlLink = url.includes("?") ? `${url}&download=1` : `${url}?download=1`;
+      document.getElementById("phoneDirectUrl").value = dlLink;
+      document.getElementById("phoneOpenBtn").href = dlLink;
+      document.getElementById("phoneQrImg").src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(dlLink)}`;
+      document.getElementById("phoneModal").classList.add("open");
+    }
+
+    function copyPhoneLink() {
+      const input = document.getElementById("phoneDirectUrl");
+      input.select();
+      navigator.clipboard?.writeText(input.value);
+    }
+
+    function closePhoneModal() {
+      document.getElementById("phoneModal").classList.remove("open");
+    }
+
+    async function startProcessing() {
+      const urlInput = document.getElementById("ytUrl");
+      const url = urlInput.value.trim();
+      if (!url) {
+        alert("Сначала вставь ссылку на видео с YouTube или загрузи локальный файл!");
+        return;
+      }
+
+      const quality = document.getElementById("videoQuality").value;
+      const rawStart = document.getElementById("rangeStart").value;
+      const rawEnd = document.getElementById("rangeEnd").value;
+
+      const btn = document.getElementById("cutBtn");
+      const loader = document.getElementById("loaderBox");
+      const loaderTitle = document.getElementById("loaderTitle");
+      const loaderSub = document.getElementById("loaderSub");
+
+      btn.disabled = true;
+      loader.classList.add("active");
+      loaderTitle.textContent = "Запускаем обработку...";
+      loaderSub.textContent = "Готовим задачу на сервере...";
+
+      try {
+        const framing = getFramingPayload();
+        const payload = {
+          url,
+          mode: currentMode,
+          niche: currentNiche,
+          cut_strategy: document.getElementById("cutStrategy").value,
+          quality,
+          count: Number(document.getElementById("clipCount").value),
+          duration: Number(document.getElementById("clipDuration").value),
+          aspect_ratio: document.getElementById("aspectRatio").value,
+          pan_x: Number(document.getElementById("panX").value) / 100,
+          normalize_audio: document.getElementById("normalizeAudio").checked,
+          cold_start: document.getElementById("coldStart").checked,
+          dynamic_zoom: document.getElementById("dynamicZoom").checked,
+          hook_text: document.getElementById("hookText").value.trim(),
+          hook_pos: document.getElementById("hookPos").value,
+          range_start: rawStart === "" ? null : Number(rawStart),
+          range_end: rawEnd === "" ? null : Number(rawEnd),
+          split_ratio: framing.split_ratio,
+          cam: framing.cam,
+          game: framing.game
+        };
+
+        const startRes = await fetch(`${API_BASE}/process`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const startData = await startRes.json();
+        if (!startRes.ok || !startData.job_id) {
+          throw new Error(startData.error || "Ошибка запуска задачи");
+        }
+
+        const jobId = startData.job_id;
+        let finalJob = null;
+
+        while (true) {
+          await new Promise(r => setTimeout(r, 1000));
+          const stRes = await fetch(`${API_BASE}/api/status/${jobId}`);
+          const stData = await stRes.json();
+          if (!stRes.ok) throw new Error(stData.error || "Ошибка получения статуса");
+
+          loaderTitle.textContent = stData.step || "Обрабатываем видео...";
+          loaderSub.textContent = stData.detail || "";
+
+          if (stData.done) {
+            if (stData.error) throw new Error(stData.error);
+            finalJob = stData;
+            break;
+          }
+        }
+
+        currentClips = (finalJob.clips || []).map(c => ({
+          ...c,
+          activeVariant: 0,
+          postStatus: "draft",
+          filename: c.filename || c.id,
+          url: getRealVideoUrl(c),
+          videoUrl: getRealVideoUrl(c)
+        }));
+
+        sessionStats.created += currentClips.length;
+        saveUrlHistory(url, finalJob.source_title || url);
+
+        libraryClips = [...currentClips, ...libraryClips];
+        updateLibCount();
+        renderClipsGrid();
+        renderLibrary();
+        renderScrubberClipMarks();
+        updateSessionStrip();
+        await checkEngine();
+      } catch (err) {
+        alert("Ошибка: " + err.message + "\nПроверь окно командной строки python server.py.");
+      } finally {
+        btn.disabled = false;
+        loader.classList.remove("active");
+      }
+    }
+
+    function openLibrary() {
+      renderLibrary();
+      document.getElementById("libModal").classList.add("open");
+    }
+
+    function closeLibrary() {
+      document.getElementById("libModal").classList.remove("open");
+    }
+
+    loadCustomLayoutPreset();
+    renderUrlHistory();
+    syncFraming();
+    syncPanLabel();
+    updateSessionStrip();
+    checkEngine();
+  </script>
+</body>
+</html>
